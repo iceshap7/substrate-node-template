@@ -17,6 +17,7 @@ mod benchmarking;
 use frame_support::pallet_prelude::{*, OptionQuery};
 use frame_system::pallet_prelude::*;
 use scale_info::prelude::vec::Vec;
+use frame_support::traits::UnixTime;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -41,6 +42,7 @@ pub mod pallet {
 		owner: T::AccountId,
 		price: u32,
 		gender: Gender,
+		created_at: u128,
 	}
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
@@ -48,6 +50,7 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type TimeProvider: UnixTime;
 	}
 
 	#[pallet::pallet]
@@ -105,11 +108,13 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			let _gender = Self::gender_gen(_dna.clone())?;
+			let now = T::TimeProvider::now();
 			let kitty = Kitty::<T> {
 				dna: _dna.clone(),
 				owner: who.clone(),
 				price: _price,
 				gender: _gender,
+				created_at: now.as_millis(),
 			};
 
 			let old_kitty_by_owner = <KittyByOwnerMap<T>>::get(who.clone());

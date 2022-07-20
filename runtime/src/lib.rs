@@ -270,6 +270,7 @@ impl pallet_template::Config for Runtime {
 
 impl pallet_kitties::Config for Runtime {
 	type Event = Event;
+	type TimeProvider = pallet_timestamp::Pallet<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

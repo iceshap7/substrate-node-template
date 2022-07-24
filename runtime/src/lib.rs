@@ -46,7 +46,14 @@ pub use sp_runtime::{Perbill, Permill};
 /// Import the template pallet.
 pub use pallet_template;
 
+/// Import the demo pallet.
+pub use pallet_demo;
+
 pub use pallet_kitties;
+
+pub use pallet_tightly_coupling;
+
+pub use pallet_loosely_coupling;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -268,9 +275,28 @@ impl pallet_template::Config for Runtime {
 	type Event = Event;
 }
 
+impl pallet_demo::Config for Runtime {
+	type Event = Event;
+}
+
+parameter_types! {
+	pub const MaxKitty:u32 = 10;
+}
 impl pallet_kitties::Config for Runtime {
 	type Event = Event;
-	type TimeProvider = pallet_timestamp::Pallet<Runtime>;
+	type Currency = Balances;
+	type KittyTime = Timestamp;
+	type Max = MaxKitty;
+	type KittyRandom = RandomnessCollectiveFlip;
+}
+
+impl pallet_tightly_coupling::Config for Runtime {
+	type Event = Event;
+}
+
+impl pallet_loosely_coupling::Config for Runtime {
+	type Event = Event;
+	type Increase =TemplateModule ;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -290,7 +316,10 @@ construct_runtime!(
 		Sudo: pallet_sudo,
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template,
-		KittiesModule: pallet_kitties,
+		Demo: pallet_demo,
+		Kitties: pallet_kitties,
+		Tightly: pallet_tightly_coupling,
+		Loosely: pallet_loosely_coupling,
 	}
 );
 
@@ -335,7 +364,8 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
-		[pallet_template, TemplateModule]
+		// [pallet_template, TemplateModule]
+		[pallet_kitties, Kitties]
 	);
 }
 

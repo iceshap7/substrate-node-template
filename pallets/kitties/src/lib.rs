@@ -29,13 +29,14 @@ use sp_runtime::traits::Hash;
 
 use frame_support::traits::Randomness;
 use frame_support::dispatch::fmt::Debug;
+use frame_support::dispatch::fmt;
 
 use sp_runtime::SaturatedConversion;
 #[frame_support::pallet]
 pub mod pallet {
 
 	pub use super::*;
-	#[derive(Clone, Encode, Decode, PartialEq, RuntimeDebug, TypeInfo)]
+	#[derive(Clone, Encode, Decode, PartialEq, TypeInfo)]
 	#[scale_info(skip_type_params(T))]
 	pub struct Kitty<T: Config> {
 		pub dna: T::Hash,
@@ -44,6 +45,19 @@ pub mod pallet {
 		pub owner: T::AccountId,
 		pub created_date: <<T as Config>::KittyTime as Time>::Moment ,
 	}
+
+	impl<T: Config> fmt::Debug for Kitty<T> {
+		fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+			f.debug_struct("Kitty")
+				.field("dna", &self.dna)
+				.field("price", &self.price)
+				.field("gender", &self.gender)
+				.field("owner", &self.owner)
+				.field("created_date", &self.created_date)
+				.finish()
+		}
+	}
+
 	#[derive(Clone, Encode, Decode, PartialEq, Copy, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 	pub enum Gender {
 		Male,
@@ -130,9 +144,11 @@ pub mod pallet {
 			let kitty =
 				Kitty::<T> { dna: dna.clone(), price: 0u32.into(), gender, owner: owner.clone(), created_date:now };
 
+			log::info!("Kitty: {:?}", &kitty);
+
 			let max = T::Max::get();
 			let get_kitties = KittiesOwned::<T>::get(&owner);
-			ensure!((get_kitties.len() as u32) < max, Error::<T>::ExceedKittyNumber); 
+			ensure!((get_kitties.len() as u32) < max, Error::<T>::ExceedKittyNumber);
 			let convert = T::KittyTime::now().saturated_into::<u64>();
 			//let convert_moment =<<T as Config>::KittyTime as Time>::Moment::saturated_from(convert);
 			let convert_moment: <<T as Config>::KittyTime as Time>::Moment = now.try_into().map_err(|_| Error::<T>::CannotConvert)?;

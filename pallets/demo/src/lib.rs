@@ -5,11 +5,11 @@
 /// <https://docs.substrate.io/v3/runtime/frame>
 pub use pallet::*;
 
-// #[cfg(test)]
-// mod mock;
+#[cfg(test)]
+mod mock;
 
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod tests;
 
 // #[cfg(feature = "runtime-benchmarks")]
 // mod benchmarking;
@@ -23,17 +23,18 @@ pub mod pallet {
 	#[derive(TypeInfo, Default, Encode, Decode)]
 	#[scale_info(skip_type_params(T))]
 	pub struct Students<T: Config> {
-		name: Vec<u8>,
-		age: u8,
-		gender: Gender,
-		account: T::AccountId,
+		pub name: Vec<u8>,
+		pub age: u8,
+		pub gender: Gender,
+		pub account: T::AccountId,
 	}
 
 	impl<T: Config> fmt::Debug for Students<T> {
 		fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 			f.debug_struct("Students")
 			 .field("name", &self.name)
-			 .field("age", &self.gender)
+			 .field("age", &self.age)
+			 .field("gender", &self.gender)
 			 .field("account", &self.account)
 			 .finish()
 		}
@@ -41,7 +42,7 @@ pub mod pallet {
 
 	pub type Id = u32;
 
-	#[derive(TypeInfo, Encode, Decode, Debug, Clone)]
+	#[derive(TypeInfo, Encode, Decode, Debug, Clone, PartialEq)]
 	pub enum Gender {
 		Male,
 		Female,

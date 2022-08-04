@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-/// Edit this file to define custom logic or remove it if it is not needed.
+/// Edit this file &to define custom logic or remove it if it is not needed.
 /// Learn more about FRAME and the core library of Substrate FRAME pallets:
 /// <https://docs.substrate.io/v3/runtime/frame>
 pub use pallet::*;
@@ -30,6 +30,7 @@ use sp_runtime::traits::Hash;
 use frame_support::traits::Randomness;
 use frame_support::dispatch::fmt::Debug;
 use frame_support::dispatch::fmt;
+use frame_system::RawOrigin;
 
 use sp_runtime::SaturatedConversion;
 #[frame_support::pallet]
@@ -123,6 +124,29 @@ pub mod pallet {
 		TransferToSelf,
 		CannotConvert,
 		ExceedKittyNumber,
+	}
+
+	#[pallet::genesis_config]
+	pub struct GenesisConfig<T: Config> {
+		pub kitties: Vec<(T::AccountId, Vec<u8>)>,
+	}
+
+	#[cfg(feature="std")]
+	impl<T: Config> Default for GenesisConfig<T> {
+		fn default() -> GenesisConfig<T> {
+			GenesisConfig::<T> {
+				kitties: Vec::new(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+		fn build(&self) {
+			for (owner, dna) in self.kitties.iter() {
+				Pallet::<T>::create_kitty(RawOrigin::Signed(owner.clone()).into(), dna.to_vec());
+			}
+		}
 	}
 
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -220,7 +244,7 @@ impl<T:Config> Pallet<T> {
 
 	fn gen_dna() -> T::Hash {
 		let (seed,_) = T::KittyRandom::random_seed();
-		let block_number = <frame_system::Pallet<T>>::block_number();
+		let block_number = KittyId::<T>::get(); //<frame_system::Pallet<T>>::block_number();
 		T::Hashing::hash_of(&(seed, block_number))
 	}
 }
